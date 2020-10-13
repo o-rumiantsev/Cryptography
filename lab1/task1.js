@@ -7,14 +7,18 @@
 
 const fs = require('fs');
 
+const { getMostOccurentByte } = require('./utils');
+
 const input = fs.readFileSync(__dirname + '/task2-text.txt', 'utf8');
 
-const singleByteXOR = (text, key) => 
-  text
-    .split('')
-    .map(symbol => String.fromCharCode(symbol.charCodeAt(0) ^ key))
-    .join('');
+const singleByteXOR = (bytes, keyByte) => bytes.map(byte => byte ^ keyByte);
 
-for (let i = 1; i < 100; ++i) {
-  console.log(i, singleByteXOR(input, i));
+const getKey = (bytes) => {
+  const mostOccurentByte = getMostOccurentByte(bytes);
+  return mostOccurentByte ^ ' '.charCodeAt(0);
 }
+
+const bytes = Array.from(Buffer.from(input));
+const decipheredBytes = singleByteXOR(bytes, getKey(bytes));
+
+console.log(Buffer.from(decipheredBytes).toString())

@@ -13,11 +13,13 @@
 
 const fs = require('fs');
 
+const {
+  shiftArray,
+  shiftArrayLeft,
+  getMostOccurentByte,
+} = require('./utils');
+
 const input = fs.readFileSync(__dirname + '/task3-text.txt', 'utf8');
-
-const shiftArray = (array) => array.unshift(array.pop());
-
-const shiftArrayLeft = (array) => array.push(array.shift());
 
 const getBytes = (input) => Array.from(Buffer.from(input, 'hex'));
 
@@ -39,31 +41,6 @@ const getKasiskiExamination = (inputBytes) => {
   return matches;
 };
 
-const getOccurenciesAnalysis = (inputBytes) => {
-  const counts = new Map();
-
-  inputBytes.forEach(byte => {
-    const count = counts.get(byte) || 0;
-    counts.set(byte, count + 1);
-  });
-
-  return counts;
-};
-
-const getMostFrequentByte = (inputBytes) => {
-  const frequencyAnalysis = getOccurenciesAnalysis(inputBytes);
-  return [...frequencyAnalysis.entries()]
-    .reduce(([byte, count], [curByte, curCount]) => 
-      curCount > count ? [curByte, curCount] : [byte, count]
-    )[0];
-};
-
-const repeatingKeyXOR = (bytes, key) => {
-  const keyBytes = Array.from(Buffer.from(key));
-
-  return bytes.map((byte, i) => byte ^ keyBytes[i % keyBytes.length]);
-};
-
 const getEveryNthChar = (bytes, n) => 
   bytes.filter((_, i) => i % n === 0 ? true : false);
 
@@ -72,12 +49,15 @@ const getKey = (inputBytes, keyLength) => {
   const keyBytes = [];
 
   for (let i = 0; i < keyLength; ++i) {
-    keyBytes.push(getMostFrequentByte(getEveryNthChar(bytes, keyLength)) ^ ' '.charCodeAt(0));
+    keyBytes.push(getMostOccurentByte(getEveryNthChar(bytes, keyLength)) ^ ' '.charCodeAt(0));
     shiftArrayLeft(bytes);
   }
 
-  return Buffer.from(keyBytes).toString();
+  return keyBytes;
 }
+
+const repeatingKeyXOR = (bytes, keyBytes) => 
+  bytes.map((byte, i) => byte ^ keyBytes[i % keyBytes.length]);
 
 const inputBytes = getBytes(input);
 
