@@ -1,5 +1,9 @@
 'use strict';
 
+const fs = require('fs');
+
+const readFile = (filename) => fs.readFileSync(filename, 'utf8');
+
 const shiftArray = (array) => array.unshift(array.pop());
 
 const shiftArrayLeft = (array) => array.push(array.shift());
@@ -23,8 +27,12 @@ const getMostOccurentByte = (bytes) => {
     )[0];
 };
 
+const probably = (probability) => Math.random() < probability;
+
 module.exports = {
+  readFile,
   shiftArray,
   shiftArrayLeft,
   getMostOccurentByte,
+  probably,
 };
