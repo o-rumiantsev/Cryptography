@@ -14,12 +14,13 @@
 const fs = require('fs');
 
 const {
+  readFile,
   shiftArray,
   shiftArrayLeft,
   getMostOccurentByte,
-} = require('./utils');
+} = require('../utils');
 
-const input = fs.readFileSync(__dirname + '/task3-text.txt', 'utf8');
+const input = readFile(__dirname + '/task3-text.txt');
 
 const getBytes = (input) => Array.from(Buffer.from(input, 'hex'));
 
