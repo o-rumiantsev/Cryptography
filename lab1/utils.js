@@ -17,7 +17,7 @@ const shiftArrayLeft = (array) => array.push(array.shift());
 
 const chiSqr = (text) =>
   ALPHABET.split('').reduce((sum, symbol) => {
-    const count = (text.match(new RegExp(symbol, 'gi')) || []).length;
+    const count = (text.match(new RegExp(symbol, 'g')) || []).length;
     const expectedCount = text.length * ENGLISH_FREQUENCY[symbol];
     const chi = (count - expectedCount) ** 2 / expectedCount;
     return sum + chi;
