@@ -11,7 +11,7 @@
  * s9ow t9e best result.
  */
 
-const { readFile, chiSqr } = require('../utils');
+const { readFile, chiSqr, getKeyLength } = require('../utils');
 
 const INPUT = readFile(__dirname + '/task3-text.txt');
 
@@ -46,9 +46,11 @@ const getKey = (text, keyLength) =>
 
 const decodedInput = Buffer.from(INPUT, 'hex').toString('latin1');
 
-console.log(
-  repeatingKeyXOR(
+console.log({
+  keyLength: getKeyLength(decodedInput),
+  key: getKey(decodedInput, getKeyLength(decodedInput)),
+  output: repeatingKeyXOR(
     decodedInput, 
-    getKey(decodedInput, 3)
-  )
-);
+    getKey(decodedInput, getKeyLength(decodedInput))
+  ),
+});

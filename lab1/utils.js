@@ -23,32 +23,65 @@ const chiSqr = (text) =>
     return sum + chi;
   }, 0);
 
-const getOccurenciesAnalysis = (bytes) => {
-  const counts = new Map();
-
-  bytes.forEach(byte => {
-    const count = counts.get(byte) || 0;
-    counts.set(byte, count + 1);
-  });
-
-  return counts;
-};
-
-const getMostOccurentByte = (bytes) => {
-  const frequencyAnalysis = getOccurenciesAnalysis(bytes);
-  return [...frequencyAnalysis.entries()]
-    .reduce(([byte, count], [curByte, curCount]) => 
-      curCount > count ? [curByte, curCount] : [byte, count]
-    )[0];
-};
-
 const probably = (probability) => Math.random() < probability;
+
+const getTrigrams = (text) => {
+  const trigrams = {};
+  let overallTrigramsOccurrences = 0;
+
+  for (let i = 0; i < text.length - 2; ++i) {
+    const trigram = text.slice(i, i + 3);
+    if (!trigrams.hasOwnProperty(trigram)) {
+      const occurrencesCount = text.match(new RegExp(trigram, 'ig')).length;
+      trigrams[trigram] = occurrencesCount;
+      overallTrigramsOccurrences += occurrencesCount;
+    }
+  }
+
+  for (const trigram in trigrams) {
+    trigrams[trigram] = trigrams[trigram] / overallTrigramsOccurrences * 100;
+  }
+
+  return trigrams;
+};
+
+const TRIGRAMS = Object.fromEntries(
+  readFile(__dirname + '/english_trigrams.csv')
+    .split('\n')
+    .map(line => line.split(','))
+    .map(entry => [entry[0], parseFloat(entry[1])])
+);
+
+const getMatchesCount = (s1, s2) => s1.split('').reduce(
+  (matches, cur, i) => cur === s2[i] ? matches + 1 : matches,
+  0
+);
+
+const getIndicesOfCoincdence = (text) => {
+  const matches = []
+  for (let i = 1; i < text.length; ++i) {
+    const shifted = text.slice(i) + text.slice(0, i);
+    const matchesCount = getMatchesCount(text, shifted);
+    matches.push(matchesCount / text.length);
+  }
+  return matches;
+};
+
+const getKeyLength = (text) => {
+  const iocs = getIndicesOfCoincdence(text);
+  const sum = iocs.reduce((s, i) => s + i);
+  const mean = sum / iocs.length;
+  return iocs.map((ioc, i) => ioc > mean ? i + 1 : null).filter(Boolean)[0];
+};
 
 module.exports = {
   readFile,
   shiftArray,
   shiftArrayLeft,
   chiSqr,
-  getMostOccurentByte,
   probably,
+  getTrigrams,
+  getKeyLength,
+  getIndicesOfCoincdence,
+  TRIGRAMS,
 };

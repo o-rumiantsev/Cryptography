@@ -1,14 +1,7 @@
 'use strict';
 
-const { readFile, probably } = require('../utils');
-const { createSubstitutionCipher } = require('./cipher');
-
-const TRIGRAMS = Object.fromEntries(
-  readFile(__dirname + '/english_trigrams.csv')
-    .split('\n')
-    .map(line => line.split(','))
-    .map(entry => [entry[0], parseFloat(entry[1])])
-);
+const { TRIGRAMS, probably, getTrigrams } = require('../utils');
+const { createCipher } = require('./cipher');
 
 class Population {
   size;
@@ -31,45 +24,22 @@ class Population {
     }
   }
 
-  tournament(encodedText) {
+  tournament(encipheredText) {
     this.fitnesses = new Map(
       this.generation
-        .map((chromosome) => {
-          const cipher = createSubstitutionCipher(this.alphabet, chromosome);
-          const decoded = cipher.decode(encodedText);
-          const trigrams = this.#getTrigrams(decoded);
-          const fitness = Object
-            .entries(trigrams)
-            .reduce(
-              (sum, [trigram, frequency]) => 
-                sum + frequency * Math.log2(TRIGRAMS[trigram] || 0),
-              0
-            );
-          return [chromosome, fitness];
-        })
+        .map((chromosome) => 
+          [chromosome, this.getFitness(chromosome, encipheredText)]
+        )
         .sort((c1, c2) => c2[1] - c1[1])
     );
   }
 
-  select(winnersPercentage, winnerProbability) {
+  select(winnersPercentage) {
     const fitnesses = new Map(this.fitnesses.entries());
     const selectedCount = Math.floor(
       this.generation.length * winnersPercentage
     );
-    this.selected = [];
-
-    while (this.selected.length < selectedCount) {
-      const winners = 
-        [...fitnesses.keys()]
-          .filter(
-            (_, i) => 
-              probably(winnerProbability * ((1 - winnerProbability) ** i))
-          )
-          .slice(0, selectedCount - this.selected.length);
-      
-      winners.forEach(key => fitnesses.delete(key));
-      this.selected.push(...winners);
-    }
+    this.selected = [...fitnesses.keys()].slice(0, selectedCount);
   }
 
   crossover(crossoverProbability, crossoverCoefficient, mutationProbability) {
@@ -79,8 +49,8 @@ class Population {
       const [parent1, parent2] = this.#randomParents(this.selected);
       const shouldCrossover = probably(crossoverProbability);
       const child = shouldCrossover 
-          ? this.#crossover(parent1, parent2, crossoverCoefficient)
-          : parent1;
+        ? this.#crossover(parent1, parent2, crossoverCoefficient)
+        : parent1;
       const shouldMutate = probably(mutationProbability);
       return shouldMutate ? this.#mutate(child) : child;
     });
@@ -88,26 +58,6 @@ class Population {
 
   next() {
     this.generation = [...new Set([...this.selected, ...this.children])];
-  }
-
-  #getTrigrams(text) {
-    const trigrams = {};
-    let overallTrigramsOccurrences = 0;
-  
-    for (let i = 0; i < text.length - 2; ++i) {
-      const trigram = text.slice(i, i + 3);
-      if (!trigrams.hasOwnProperty(trigram)) {
-        const occurrencesCount = text.match(new RegExp(trigram, 'g')).length;
-        trigrams[trigram] = occurrencesCount;
-        overallTrigramsOccurrences += occurrencesCount;
-      }
-    }
-  
-    for (const trigram in trigrams) {
-      trigrams[trigram] = trigrams[trigram] / overallTrigramsOccurrences * 100;
-    }
-  
-    return trigrams;
   }
 
   #randomParents(chromosomes) {
@@ -162,6 +112,19 @@ class Population {
   
     return part1 + gene2 + part2 + gene1 + part3;
   };
+
+  getFitness(chromosome, encipheredText) {
+    const cipher = createCipher(this.alphabet, chromosome);
+    const decipheredText = cipher.decipher(encipheredText);    
+    const trigrams = getTrigrams(decipheredText);
+    return Object
+      .entries(trigrams)
+      .reduce(
+        (sum, [trigram, frequency]) => 
+          sum + frequency * Math.log2(TRIGRAMS[trigram] || 0),
+        0
+      );
+  }
 }
 
 module.exports = { Population };

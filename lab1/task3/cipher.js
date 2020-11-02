@@ -7,7 +7,7 @@ const createCipherMapper = (mapping) =>
       .map(symbol => mapping[symbol])
       .join('');
 
-const createSubstitutionCipher = (alphabet, key) => {
+const createCipher = (alphabet, key) => {
   const mapping = {
     toCipher: {},
     fromCipher: {},
@@ -19,11 +19,11 @@ const createSubstitutionCipher = (alphabet, key) => {
   });
 
   return {
-    encode: createCipherMapper(mapping.toCipher),
-    decode: createCipherMapper(mapping.fromCipher),
+    encipher: createCipherMapper(mapping.toCipher),
+    decipher: createCipherMapper(mapping.fromCipher),
   }
 };
 
 module.exports = {
-  createSubstitutionCipher,
+  createCipher,
 };
