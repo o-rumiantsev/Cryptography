@@ -1,7 +1,11 @@
 'use strict';
 
-const http = require('http');
 const uuid = require('uuid');
+const {
+  createAcc,
+  makeBet,
+  playModes,
+} = require('./utils');
 
 /**
  * Account ID
@@ -17,40 +21,6 @@ const DESIRED_BANK = 1000000;
  * Known LCG modulus
  */
 const MODULUS = 2 ** 32;
-
-/**
- * Simple HTTP GET tool
- * 
- * @param {string} url 
- * @returns {Promise<any>} response
- */
-const request = (url) => new Promise(resolve => {
-  let response = '';
-  http.get(url, res => {
-    res.on('data', (data) => response += data)
-      .on('end', () => resolve(JSON.parse(response)));
-  });
-});
-
-/**
- * Create account in casino
- *
- *  @returns {Promise<any>}
- */
-const createAcc = () =>
-  request(`http://95.217.177.249/casino/createacc?id=${ID}`);
-
-/**
- * Make bet on LCG machine
- * 
- * @param {number} bet 
- * @param {number} number 
- * @returns {Promise<any>}
- */
-const makeBet = (bet, number) =>
-  request(
-    `http://95.217.177.249/casino/playLcg?id=${ID}&bet=${bet}&number=${number}`
-  );
 
 /**
  * Get positive modulus
@@ -128,7 +98,7 @@ const hackLCG = async () => {
   const states = [];
 
   for (let i = 0; i < 5; ++i) {
-    const { realNumber } = await makeBet(1, 0);
+    const { realNumber } = await makeBet(ID, playModes.LCG, 1, 0);
     states.push(realNumber);
   }
 
@@ -172,7 +142,7 @@ const makeALotOfMoney = async ({ multiplier, increment, prev }) => {
   let bet = money / 2;
 
   while (money < DESIRED_BANK) {
-    const response = await makeBet(bet, betNumber);
+    const response = await makeBet(ID, playModes.LCG, bet, betNumber);
     
     if (!response.realNumber) {
       throw response;
@@ -186,9 +156,9 @@ const makeALotOfMoney = async ({ multiplier, increment, prev }) => {
     betNumber = generateLCGNumber(response.realNumber, multiplier, increment, MODULUS);
     bet = Math.floor(response.account.money / 2);
   }
-}
+};
 
-createAcc()
+createAcc(ID)
   .then(hackLCG)
   .then(makeALotOfMoney)
   .catch(console.error);
