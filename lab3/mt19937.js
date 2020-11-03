@@ -1,61 +1,79 @@
 'use strict';
 
-function uint32(n) { // "cast" to unsigned 32-bit integer
-  return (new Uint32Array([n]))[0];
-}
+const N = 624;
 
-function *mtrand(seed) {
-  // algorithm parameters
-  const N = 624;
-  const M = 397;
-  const F = 1812433253;
-  const U = 11;
-  const S = 7;
-  const B = 0x9D2C5680;
-  const T = 15;
-  const C = 0xEFC60000;
-  const L = 18;
-  const R = 31;
-  const HI = (1 << R);
-  const LO = (1 << R) - 1;
-  const A = 0x9908B0DF;
+const uint32 = (x) => (new Uint32Array([x]))[0];
 
-  // state
-  let index;
-  const mt = [];
+class MersenneTwister {
+  index = 0;
+  states = [];
 
-  // initialization
-  mt[0] = uint32(seed);
-  for (index = 1; index < N; index++) {
-    let x = mt[index - 1] ^ (mt[index - 1] >>> 30);
-    mt[index] = uint32(
-      ((((x & 0xffff0000) >>> 16) * F) << 16) +
-      ((((x & 0x0000ffff) >>>  0) * F) <<  0) +
-      index
-    );
+  constructor(seed) {
+    this.states[0] = uint32(seed);
+
+    for (let i = 1; i < MersenneTwister.N; ++i) {
+      const x = this.states[i - 1] ^ (this.states[i - 1] >>> 30);
+      this.states[i] = uint32(
+        ((((x & 0xffff0000) >>> 16) * 1812433253) << 16) +
+        ((((x & 0x0000ffff) >>>  0) * 1812433253) <<  0) +
+        i
+      );
+    }
   }
 
-  // main loop
-  do {
-    // do the twist
-    for (index = 0; index < N; index++) {
-      const x = uint32((mt[index] & HI) + (mt[(index + 1) % N] & LO));
-      mt[index] = (mt[(index + M) % N] ^ x >>> 1);
-      mt[index] = uint32((x & 1) ? (mt[index] ^ A) : mt[index]);
+  static N = 624;
+
+  static from(states) {
+    const mt = new MersenneTwister(0);
+    mt.states = states.map(MersenneTwister.untemper);
+    return mt;
+  }
+
+  static temper(x) {
+    x ^= (x >>> 11);
+    x ^= (x << 7) & 0x9D2C5680;
+    x ^= (x << 15) & 0xEFC60000;
+    x ^= (x >>> 18);
+    return uint32(x);
+  }
+
+  static untemper(x) {
+    x ^= (x >>> 18);
+    x ^= (x << 15) & 0xEFC60000;
+    x ^= 
+      ((x << 7) & 0x9D2C5680) ^
+      ((x << 14) & 0x94284000) ^
+      ((x << 21) & 0x14200000) ^
+      ((x << 28) & 0x10000000);
+    x ^= (x >>> 11) ^ (x >>> 22);
+    return uint32(x);
+  }
+
+  next() {
+    if (this.index === 0) {
+      for (let i = 0; i < MersenneTwister.N; i++) {
+        const x = uint32(
+          (this.states[i] & (1 << 31)) + 
+          (this.states[(i + 1) % MersenneTwister.N] & ((1 << 31) - 1))
+        );
+        this.states[i] = 
+          (this.states[(i + 397) % MersenneTwister.N] ^ x >>> 1);
+        this.states[i] = uint32(
+          (x & 1) 
+            ? (this.states[i] ^ 0x9908B0DF) 
+            : this.states[i]
+        );
+      }
     }
 
-    // yield some results
-    for (index = 0; index < N; index++) {
-      let y = mt[index];
-      y ^= (y >>> U);
-      y ^= (y << S) & B;
-      y ^= (y << T) & C;
-      y ^= (y >>> L);
-      yield uint32(y);
-    }
-  } while (true);
+    const value = MersenneTwister.temper(this.states[this.index]);
+    this.index = (this.index + 1) % MersenneTwister.N;
+
+    return {
+      done: false,
+      value,
+    };
+  }
 }
 
-module.exports = {
-  mtrand
-};
+module.exports = { MersenneTwister };

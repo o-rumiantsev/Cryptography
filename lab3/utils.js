@@ -41,6 +41,7 @@ const makeBet = (id, mode, bet, number) =>
 const playModes = {
   LCG: 'Lcg',
   MT: 'Mt',
+  BETTER_MT: 'BetterMt',
 };
   
 module.exports = {

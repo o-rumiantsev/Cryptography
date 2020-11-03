@@ -21,33 +21,30 @@ const DESIRED_BANK = 1000000;
 /**
  * Hack MT19937 randomizer
  * 
- * @param {number} seed
- * @returns {number} seed
+ * @returns {MersenneTwister} PRNG instance
  */
-const hackMt = async (seed) => {
-  const { realNumber } = await makeBet(ID, playModes.MT, 1, 0);
+const hackMt = async () => {
+  const outputs = [];
 
-  for (let i = -60; i < 60; ++i) {
-    const mt = new MersenneTwister(seed + i);
-    if (mt.next().value === realNumber) {
-      return seed + i;
+  for (let i = 0; i < MersenneTwister.N; ++i) {
+    const { realNumber } = await makeBet(ID, playModes.BETTER_MT, 1, 0);
+    outputs.push(realNumber);
+    if (i % 100 === 99) {
+      console.log(`Made ${i + 1} bets`);
     }
   }
   
-  throw new Error('Could not determine MT19937 seed');
+  return MersenneTwister.from(outputs);
 };
 
-const makeALotOfMoney = async (seed) => {
-  let money = 1000;
+const makeALotOfMoney = async (mt) => {
+  let money = 1000 - MersenneTwister.N;
   let bet = money / 2;
-
-  const mt = new MersenneTwister(seed);
-  mt.next();
 
   while (money < DESIRED_BANK) {
     const betNumber = mt.next().value;
-    const response = await makeBet(ID, playModes.MT, bet, betNumber);
-    
+    const response = await makeBet(ID, playModes.BETTER_MT, bet, betNumber);
+
     if (!response.realNumber) {
       throw response;
     }
