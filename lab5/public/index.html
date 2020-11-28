@@ -1,0 +1,49 @@
+<head>
+  <script>
+    const getCredentials = () => ({
+      login: document.getElementById('login-input').value,
+      password: document.getElementById('password-input').value,
+    });
+
+    const signUp = async (login, password) => {
+      const credentials = getCredentials();  
+      const response = await fetch('/signup', {
+        method: 'post',
+        body: JSON.stringify(credentials),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      document.getElementById('output').innerText = 
+        response.status >= 400 
+          ? await response.text()
+          : 'Signed Up';
+    };
+
+    const signIn = async (login, password) => {
+      const credentials = getCredentials();  
+      const response = await fetch('/signin', {
+        method: 'post',
+        body: JSON.stringify(credentials),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      document.getElementById('output').innerText =
+        response.status >= 400
+          ? await response.text()
+          : 'Signed In';
+    };
+
+  </script>
+</head>
+
+<body>
+  <label>Login: </label><input type="text" id="login-input" />
+  <label>Password: </label><input type="password" id="password-input" />
+  <button onclick="signIn()">Sign In</button>
+  <button onclick="signUp()">Sign Up</button>
+  <div id="output"></div>
+</body>
