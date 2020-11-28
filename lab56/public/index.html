@@ -1,0 +1,94 @@
+<head>
+  <script>
+    const getCredentials = () => ({
+      login: document.getElementById('login-input').value,
+      password: document.getElementById('password-input').value,
+    });
+
+    const getDataToSet = () => ({
+      field: document.getElementById('field-input').value,
+      value: document.getElementById('value-input').value,
+    });
+
+    const signUp = async () => {
+      const credentials = getCredentials();  
+      const response = await fetch('/signup', {
+        method: 'post',
+        body: JSON.stringify(credentials),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      document.getElementById('output').innerText = 
+        response.status >= 400 
+          ? await response.text()
+          : 'Signed Up';
+    };
+
+    const signIn = async () => {
+      const credentials = getCredentials();  
+      const response = await fetch('/signin', {
+        method: 'post',
+        body: JSON.stringify(credentials),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      document.getElementById('output').innerText =
+        response.status >= 400
+          ? await response.text()
+          : 'Signed In';
+    };
+
+    const setData = async () => {
+      const credentials = getCredentials();
+      const dataToSet = getDataToSet();
+      const response = await fetch('/setdata', {
+        method: 'post',
+        body: JSON.stringify({ ...credentials, ...dataToSet }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      document.getElementById('output').innerText =
+        response.status >= 400
+          ? await response.text()
+          : 'Data set successfully';
+    };
+
+    const getData = async () => {
+      const credentials = getCredentials();
+      const response = await fetch('/getdata', {
+        method: 'post',
+        body: JSON.stringify({ ...credentials }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      document.getElementById('output').innerText = await response.text();
+    };
+  </script>
+</head>
+
+<body>
+  <div>
+    <h1>Auth</h1>
+    <label>Login: </label><input type="text" id="login-input" />
+    <label>Password: </label><input type="password" id="password-input" />
+    <button onclick="signIn()">Sign In</button>
+    <button onclick="signUp()">Sign Up</button>
+  </div>
+  <div>
+    <h1>Data</h1>
+    <label>Field: </label><input type="text" id="field-input" />
+    <label>Value: </label><input type="text" id="value-input" />
+    <button onclick="setData()">Set data</button>
+    <button onclick="getData()">Get data</button>
+  </div> 
+
+  <div id="output"></div>
+</body>
