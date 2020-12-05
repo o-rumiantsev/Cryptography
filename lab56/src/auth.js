@@ -4,12 +4,7 @@ const argon2 = require('argon2');
 const nacl = require('tweetnacl');
 const { deserialize } = require('@phc/format');
 
-const {
-  convert,
-  ARGON_SALT_LENGTH,
-  NONCE_LENGTH,
-  KEY,
-} = require('./utils');
+const { convert, KEY } = require('./utils');
 
 const securePassword = async (password) => {
   const sha512 = nacl.hash(convert.stringToArray(password));
@@ -19,8 +14,8 @@ const securePassword = async (password) => {
   const result = nacl.secretbox(convert.stringToArray(argon), nonce, KEY);
   return {
     argonSalt: argonSalt.toString('hex'),
-    nonce: convert.arrayToString(nonce),
-    result: convert.arrayToString(result),
+    nonce: convert.arrayToString(nonce, 'hex', 'hex'),
+    result: convert.arrayToString(result, 'hex', 'hex'),
   };
 };
 
@@ -34,12 +29,12 @@ const verifyPassword = async (password, user) => {
     convert.stringToArray(user.nonce, 'hex'),
     KEY
   );
-  return convert.arrayToString(result) === user.password;
+  return convert.arrayToString(result, 'hex', 'hex') === user.password;
 };
 
-const createUser = async (firestore, login, password) => {
+const createUser = async (storage, login, password) => {
   const securedPassword = await securePassword(password);
-  await firestore.collection('users').add({
+  await storage.put('users', {
     login,
     password: securedPassword.result,
     nonce: securedPassword.nonce,
@@ -47,29 +42,13 @@ const createUser = async (firestore, login, password) => {
   });
 };
 
-const doesLoginInUse = async (firestore, login) => {
-  const query = await firestore.collection('users')
-    .where('login', '==', login)
-    .get();
-  return query.size > 0;
+const doesLoginInUse = async (storage, login) => {
+  return storage.has('users', { login });
 };
 
-const getUserByLogin = async (firestore, login) => {
-  const query = await firestore.collection('users')
-    .where('login', '==', login)
-    .get();
-  const [doc] = query.docs;
-  return doc 
-    ? {
-      id: doc.id,
-      login: doc.get('login'),
-      password: doc.get('password'),
-      nonce: doc.get('nonce') ||
-        convert.arrayToString(nacl.randomBytes(NONCE_LENGTH)),
-      argonSalt: doc.get('argonSalt') ||
-        convert.arrayToString(nacl.randomBytes(ARGON_SALT_LENGTH)),
-    }
-    : null;
+const getUserByLogin = async (storage, login) => {
+  const [user] = await storage.get('users', { login });
+  return user;
 };
 
 module.exports = {

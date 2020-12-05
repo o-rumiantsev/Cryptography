@@ -2,8 +2,8 @@
 
 const auth = require('./auth');
 
-const getUserData = async (firestore, login, password) => {
-  const user = await auth.getUserByLogin(firestore, login);
+const getUserData = async (storage, login, password) => {
+  const user = await auth.getUserByLogin(storage, login);
 
   if (!user) {
     throw {
@@ -21,15 +21,11 @@ const getUserData = async (firestore, login, password) => {
     };
   }
 
-  const query = await firestore.collection('userData')
-    .where('userId', '==', user.id)
-    .get();
-
-  return query.docs.map(doc => doc.data());
+  return storage.get('userData', { userId: user.id });
 };
 
-const setUserData = async (firestore, login, password, field, value) => {
-  const user = await auth.getUserByLogin(firestore, login);
+const setUserData = async (storage, login, password, field, value) => {
+  const user = await auth.getUserByLogin(storage, login);
 
   if (!user) {
     throw {
@@ -47,20 +43,7 @@ const setUserData = async (firestore, login, password, field, value) => {
     };
   }
 
-  const userDataQuery = await firestore.collection('userData')
-    .where('userId', '==', user.id)
-    .get();
-
-  if (userDataQuery.size) {
-    const [document] = userDataQuery.docs;
-    await firestore.collection('userData')
-      .doc(document.id)
-      .set({ [field]: value }, { merge: true });
-  } else {
-    console.log('creating', { userId: user.id, [field]: value })
-    await firestore.collection('userData')
-      .add({ userId: user.id, [field]: value });
-  }
+  await storage.update('userData', { userId: user.id }, { [field]: value });
 };
 
 module.exports = {

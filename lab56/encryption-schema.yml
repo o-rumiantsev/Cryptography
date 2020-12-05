@@ -1,0 +1,7 @@
+users:
+  - password
+  - nonce
+  - argonSalt
+
+userData:
+  - phone

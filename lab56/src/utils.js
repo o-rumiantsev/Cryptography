@@ -20,7 +20,8 @@ const convert = {
   stringToArray: (string, encoding) => Uint8Array.from(
     Buffer.from(string, encoding)
   ),
-  arrayToString: (array) => Buffer.from(array).toString('hex'),
+  arrayToString: (array, arrayEncoding, stringEncoding) =>
+    Buffer.from(array, arrayEncoding).toString(stringEncoding),
 };
 
 module.exports = {

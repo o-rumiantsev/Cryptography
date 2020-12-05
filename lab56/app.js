@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const yaml = require('yaml');
 const fastify = require('fastify');
 const owasp = require('owasp-password-strength-test');
 const { Firestore } = require('@google-cloud/firestore');
@@ -9,6 +10,7 @@ const { Firestore } = require('@google-cloud/firestore');
 const auth = require('./src/auth')
 const userData = require('./src/userData');
 const utils = require('./src/utils');
+const Storage = require('./src/storage');
 
 const app = fastify({
   logger: true,
@@ -27,9 +29,15 @@ const firestore = new Firestore({
   },
 });
 
+const encryptionSchema = yaml.parse(
+  fs.readFileSync('./encryption-schema.yml', 'utf8')
+);
+
+const storage = new Storage(firestore, encryptionSchema);
+
 app.post('/signin', async (req) => {
   const { login, password } = req.body;
-  const user = await auth.getUserByLogin(firestore, login);
+  const user = await auth.getUserByLogin(storage, login);
 
   if (!user) {
     throw {
@@ -52,7 +60,7 @@ app.post('/signin', async (req) => {
 
 app.post('/signup', async (req, reply) => {
   const { login, password } = req.body;
-  
+
   if (utils.COMMON_PASSWORDS.includes(password)) {
     throw {
       statusCode: 400,
@@ -69,26 +77,26 @@ app.post('/signup', async (req, reply) => {
     };
   }
 
-  if (await auth.doesLoginInUse(firestore, login)) {
+  if (await auth.doesLoginInUse(storage, login)) {
     throw {
       statusCode: 400,
       message: 'User already exists',
     };
   }
 
-  await auth.createUser(firestore, login, password);
+  await auth.createUser(storage, login, password);
   reply.code(204);
 });
 
 app.post('/setdata', async (req, reply) => {
   const { login, password, field, value } = req.body;
-  await userData.setUserData(firestore, login, password, field, value);
+  await userData.setUserData(storage, login, password, field, value);
   reply.code(204);
 });
 
 app.post('/getdata', async (req) => {
   const { login, password } = req.body;
-  return userData.getUserData(firestore, login, password);
+  return userData.getUserData(storage, login, password);
 });
 
 app.listen(process.env.PORT, process.env.HOST);

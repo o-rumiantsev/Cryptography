@@ -14,10 +14,12 @@
     "@google-cloud/firestore": "^4.7.1",
     "@phc/format": "^1.0.0",
     "argon2": "^0.27.0",
+    "aws-sdk": "^2.804.0",
     "fastify": "^3.8.0",
     "fastify-static": "^3.3.0",
     "owasp-password-strength-test": "^1.3.0",
     "pg": "^8.5.1",
-    "tweetnacl": "^1.0.3"
+    "tweetnacl": "^1.0.3",
+    "yaml": "^1.10.0"
   }
 }
