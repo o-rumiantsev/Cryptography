@@ -1,6 +1,5 @@
 users:
   - password
-  - nonce
   - argonSalt
 
 userData:

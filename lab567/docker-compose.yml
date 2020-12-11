@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: app.Dockerfile
+    container_name: securitylabs-app
+    env_file:
+      - .env
+    expose:
+      - 3000
+
+  reverse-proxy:
+    build:
+      context: .
+      dockerfile: reverse-proxy.Dockerfile
+    container_name: securitylabs-reverse-proxy
+    ports:
+      - 80:80
+      - 443:433
+
+  kms:
+    image: nsmithuk/local-kms
+    container_name: securitylabs-kms
+    expose:
+      - 8080
+    volumes:
+      - ./config/kms/init:/init

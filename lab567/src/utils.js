@@ -2,13 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const nacl = require('tweetnacl');
 
-const ARGON_SALT_LENGTH = 16;
-const NONCE_LENGTH = nacl.secretbox.nonceLength;
-const KEY = Uint8Array.from(
-  fs.readFileSync(path.join(__dirname, '..', process.env.CIPHER_KEY_FILE))
-);
 const COMMON_PASSWORDS = fs
   .readFileSync(
     path.join(__dirname, '..', process.env.COMMON_PASSWORDS_FILE),
@@ -26,8 +20,5 @@ const convert = {
 
 module.exports = {
   convert,
-  ARGON_SALT_LENGTH,
-  NONCE_LENGTH,
-  KEY,
   COMMON_PASSWORDS,
 };

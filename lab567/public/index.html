@@ -12,7 +12,7 @@
 
     const signUp = async () => {
       const credentials = getCredentials();  
-      const response = await fetch('/signup', {
+      const response = await fetch('/api/signup', {
         method: 'post',
         body: JSON.stringify(credentials),
         headers: {
@@ -28,7 +28,7 @@
 
     const signIn = async () => {
       const credentials = getCredentials();  
-      const response = await fetch('/signin', {
+      const response = await fetch('/api/signin', {
         method: 'post',
         body: JSON.stringify(credentials),
         headers: {
@@ -45,7 +45,7 @@
     const setData = async () => {
       const credentials = getCredentials();
       const dataToSet = getDataToSet();
-      const response = await fetch('/setdata', {
+      const response = await fetch('/api/setdata', {
         method: 'post',
         body: JSON.stringify({ ...credentials, ...dataToSet }),
         headers: {
@@ -61,7 +61,7 @@
 
     const getData = async () => {
       const credentials = getCredentials();
-      const response = await fetch('/getdata', {
+      const response = await fetch('/api/getdata', {
         method: 'post',
         body: JSON.stringify({ ...credentials }),
         headers: {
