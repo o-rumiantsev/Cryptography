@@ -10,8 +10,8 @@ const passwordGenerator = require('./password-generator');
 const PASSWORDS_COUNT = 100000;
 const TOP_100_COUNT = PASSWORDS_COUNT * 0.1;
 const TOP_1M_COUNT = PASSWORDS_COUNT * 0.8;
-const FROM_RULES_COUNT = PASSWORDS_COUNT * 0.6;
-const RANDOM_COUNT = PASSWORDS_COUNT * 0.4;
+const FROM_RULES_COUNT = PASSWORDS_COUNT * 0.06;
+const RANDOM_COUNT = PASSWORDS_COUNT * 0.04;
 
 const generatePasswords = (generate, count) => {
   const passwords = [];
