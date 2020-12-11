@@ -17,8 +17,8 @@ services:
       dockerfile: reverse-proxy.Dockerfile
     container_name: securitylabs-reverse-proxy
     ports:
-      - 80:80
-      - 443:433
+      - 4080:80
+      - 4443:443
 
   kms:
     image: nsmithuk/local-kms
